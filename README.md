@@ -431,7 +431,7 @@ This project was built with ❤️ for the Linux customization community.
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=affaan-m/everything-claude-code,OpalAayan/snappy-switcher&type=date&legend=top-left)](https://www.star-history.com/#affaan-m/everything-claude-code&OpalAayan/snappy-switcher&type=date&legend=top-left)
+[![Star History Chart](https://api.star-history.com/svg?repos=OpalAayan/snappy-switcher&type=date&legend=top-left)](https://www.star-history.com/#OpalAayan/snappy-switcher&type=date&legend=top-left)
 
 <sub>Licensed under GPL-3.0</sub>
 
