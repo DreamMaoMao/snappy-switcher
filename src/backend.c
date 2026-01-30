@@ -57,7 +57,7 @@ static BackendType detect_backend(void) {
   return BACKEND_UNKNOWN;
 }
 
-Backend *backend_init(void) {
+Backend *backend_init(struct wl_display *display) {
   if (current_backend) {
     return current_backend;
   }
@@ -69,7 +69,7 @@ Backend *backend_init(void) {
       current_backend = &backends[i];
 
       /* Initialize the backend */
-      if (current_backend->init && current_backend->init() < 0) {
+      if (current_backend->init && current_backend->init(display) < 0) {
         LOG("Failed to initialize %s backend", current_backend->get_name());
         current_backend = NULL;
         return NULL;

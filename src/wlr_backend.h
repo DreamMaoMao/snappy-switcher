@@ -4,9 +4,10 @@
 
 #include "backend.h"
 #include "data.h"
+#include <wayland-client.h>
 
 /* Initialize wlr backend */
-int wlr_backend_init(void);
+int wlr_backend_init(struct wl_display *display);
 
 /* Cleanup wlr backend */
 void wlr_backend_cleanup(void);

@@ -4,6 +4,7 @@
 
 #include "config.h"
 #include "data.h"
+#include <wayland-client.h>
 
 /* Backend types */
 typedef enum { BACKEND_HYPRLAND, BACKEND_WLR, BACKEND_UNKNOWN } BackendType;
@@ -11,7 +12,7 @@ typedef enum { BACKEND_HYPRLAND, BACKEND_WLR, BACKEND_UNKNOWN } BackendType;
 /* Backend function pointers */
 typedef struct {
   BackendType type;
-  int (*init)(void);
+  int (*init)(struct wl_display *display);
   void (*cleanup)(void);
   int (*get_windows)(AppState *state, Config *config);
   void (*activate_window)(const char *identifier);
@@ -19,7 +20,7 @@ typedef struct {
 } Backend;
 
 /* Initialize backend system, auto-detects which backend to use */
-Backend *backend_init(void);
+Backend *backend_init(struct wl_display *display);
 
 /* Cleanup backend resources */
 void backend_cleanup(Backend *backend);

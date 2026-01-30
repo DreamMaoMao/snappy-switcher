@@ -12,7 +12,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <wayland-client-protocol.h>
-#include <wayland-client.h>
 
 #include "wlr-foreign-toplevel-management-unstable-v1-client-protocol.h"
 
@@ -314,7 +313,7 @@ static void cleanup_windows(void) {
   backend_state.activation_counter = 0;
 }
 
-int wlr_backend_init(void) {
+int wlr_backend_init(struct wl_display *display) {
   if (backend_state.initialized) {
     LOG("Already initialized");
     return 0;
@@ -322,18 +321,9 @@ int wlr_backend_init(void) {
 
   LOG("Initializing WLR backend...");
 
-  backend_state.display = wl_display_connect(NULL);
-  if (!backend_state.display) {
-    LOG("Failed to connect to Wayland display");
-    return -1;
-  }
+  backend_state.display = display;
 
   backend_state.registry = wl_display_get_registry(backend_state.display);
-  if (!backend_state.registry) {
-    LOG("Failed to get registry");
-    wl_display_disconnect(backend_state.display);
-    return -1;
-  }
 
   wl_registry_add_listener(backend_state.registry, &registry_listener, NULL);
 

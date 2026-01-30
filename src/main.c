@@ -402,13 +402,6 @@ static int run_daemon(void) {
   icons_init(config->icon_theme, config->icon_fallback);
   app_state_init(&app_state);
 
-  backend = backend_init();
-  if (!backend) {
-    LOG("Failed to initialize backend");
-    return 1;
-  }
-  LOG("Using %s backend", backend->get_name());
-
   /* Callbacks */
   on_alt_release = select_and_hide;
   on_escape = hide_switcher; /* hide without switch */
@@ -425,6 +418,13 @@ static int run_daemon(void) {
     backend_cleanup(backend);
     return 1;
   }
+
+  backend = backend_init(display);
+  if (!backend) {
+    LOG("Failed to initialize backend");
+    return 1;
+  }
+  LOG("Using %s backend", backend->get_name());
 
   struct wl_registry *registry = wl_display_get_registry(display);
   wl_registry_add_listener(registry, &registry_listener, &app_state);

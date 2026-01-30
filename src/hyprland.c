@@ -18,7 +18,8 @@
 
 static char *get_socket_path(void);
 
-int hyprland_backend_init(void) {
+int hyprland_backend_init(struct wl_display *display) {
+  (void)display;
   /* Hyprland backend doesn't need special initialization */
   /* Just check if we can connect */
   char *socket_path = get_socket_path();

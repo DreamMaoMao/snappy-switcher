@@ -4,6 +4,7 @@
 
 #include "config.h"
 #include "data.h"
+#include <wayland-client.h>
 
 /* Initialize AppState */
 void app_state_init(AppState *state);
@@ -21,7 +22,7 @@ int update_window_list(AppState *state, Config *config);
 /* Switch focus to window address */
 void switch_to_window(const char *address);
 
-int hyprland_backend_init(void);
+int hyprland_backend_init(struct wl_display *display);
 void hyprland_backend_cleanup(void);
 const char *hyprland_get_name(void);
 
