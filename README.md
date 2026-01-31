@@ -2,7 +2,9 @@
 
 # ⚡ wswitch Switcher
 
-This is a fork of the [snappy-wswitch](https://github.com/OpalAayan/snappy-switcher).
+https://github.com/user-attachments/assets/2f486753-368a-45bb-9fda-f8c5b6eaf507
+
+This is a fork of the [snappy-switcher](https://github.com/OpalAayan/snappy-switcher).
 
 ### A blazing-fast, Alt+Tab window switcher for wayland compositors
 
@@ -196,7 +198,7 @@ title_size = 10
 
 | Project | Contribution |
 |---------|--------------|
-| **[hyprshell](https://github.com/OpalAayan/snappy-switcher)** | Massive inspiration for the design of the window switcher |
+| **[snappy-switcher](https://github.com/OpalAayan/snappy-switcher)** | Massive inspiration for the design of the window switcher |
 
 ---
 
