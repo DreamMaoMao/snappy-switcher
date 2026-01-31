@@ -412,22 +412,8 @@ int wlr_get_windows(AppState *state, Config *config) {
   app_state_free(state);
   app_state_init(state);
 
-  // process pending events
-  while (wl_display_prepare_read(backend_state.display) != 0) {
-    wl_display_dispatch_pending(backend_state.display);
-  }
-  wl_display_flush(backend_state.display);
-
-  struct pollfd pfd = {.fd = wl_display_get_fd(backend_state.display),
-                       .events = POLLIN};
-
-  if (poll(&pfd, 1, 0) > 0 && (pfd.revents & POLLIN)) {
-    wl_display_read_events(backend_state.display);
-  } else {
-    wl_display_cancel_read(backend_state.display);
-  }
-
   wl_display_dispatch_pending(backend_state.display);
+  wl_display_flush(backend_state.display);
 
   LOG("Found %d windows via WLR protocol", backend_state.window_count);
 
@@ -436,9 +422,6 @@ int wlr_get_windows(AppState *state, Config *config) {
     return 0;
   }
 
-  // sort windows by activation order
-  // the list is already sorted by activation order (most recently activated
-  // first)
   WindowNode *curr = backend_state.windows;
   int index = 0;
 
@@ -455,16 +438,9 @@ int wlr_get_windows(AppState *state, Config *config) {
     info.class_name = strdup(curr->app_id ? curr->app_id : "unknown");
     info.workspace_id = 0;
 
-    // use activation serial as focus_history_id
-    // activation serial is larger for more recently activated
-    // for windows that have never been activated, give them a very large value
-    // to ensure they are at the end
     if (curr->activation_serial == 0) {
       info.focus_history_id = 10000 + index;
     } else {
-      // activation serial is smaller for more recently activated (because we
-      // want the most recently activated at the front) use the maximum value
-      // minus the serial number to achieve this
       info.focus_history_id = 1000 - curr->activation_serial;
     }
 
@@ -485,8 +461,6 @@ int wlr_get_windows(AppState *state, Config *config) {
     index++;
   }
 
-  // sort windows by focus_history_id (smaller numbers mean more recently
-  // activated)
   if (state->count > 1) {
     int i, j;
     for (i = 0; i < state->count - 1; i++) {
