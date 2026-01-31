@@ -20,16 +20,18 @@
 #define MAX_CACHE 64
 #define MAX_PATH 512
 
-/* Icon cache entry */
+/* Icon cache entry with LRU counter */
 typedef struct {
   char class_name[128];
   int size;
   cairo_surface_t *surface;
+  unsigned long access_time; /* LRU timestamp */
 } IconCacheEntry;
 
 /* Global state */
 static IconCacheEntry icon_cache[MAX_CACHE];
 static int cache_count = 0;
+static unsigned long lru_counter = 0; /* Global access counter */
 static char current_theme[64] = "Tela-dracula";
 static char fallback_theme_name[64] = "Tela-circle-dracula";
 
@@ -96,6 +98,73 @@ static void init_paths(void) {
   desktop_dirs[desktop_idx] = NULL;
 }
 
+/* Find LRU cache entry to evict */
+static int find_lru_entry(void) {
+  int lru_index = 0;
+  unsigned long oldest_time = icon_cache[0].access_time;
+
+  for (int i = 1; i < cache_count; i++) {
+    if (icon_cache[i].access_time < oldest_time) {
+      oldest_time = icon_cache[i].access_time;
+      lru_index = i;
+    }
+  }
+
+  return lru_index;
+}
+
+/* Evict least recently used cache entry */
+static void evict_lru_entry(void) {
+  if (cache_count == 0)
+    return;
+
+  int lru_index = find_lru_entry();
+
+  LOG("Evicting LRU cache entry: %s (size: %d)",
+      icon_cache[lru_index].class_name, icon_cache[lru_index].size);
+
+  if (icon_cache[lru_index].surface) {
+    cairo_surface_destroy(icon_cache[lru_index].surface);
+  }
+
+  /* Move last entry to the evicted position */
+  if (lru_index < cache_count - 1) {
+    memcpy(&icon_cache[lru_index], &icon_cache[cache_count - 1],
+           sizeof(IconCacheEntry));
+  }
+
+  cache_count--;
+}
+
+/* Add icon to cache, evicting LRU if needed */
+static void add_to_cache(const char *class_name, int size,
+                         cairo_surface_t *surface) {
+  /* Evict LRU if cache is full */
+  if (cache_count >= MAX_CACHE) {
+    evict_lru_entry();
+  }
+
+  /* Add new entry */
+  strncpy(icon_cache[cache_count].class_name, class_name, 127);
+  icon_cache[cache_count].class_name[127] = '\0';
+  icon_cache[cache_count].size = size;
+  icon_cache[cache_count].surface = surface;
+  icon_cache[cache_count].access_time = ++lru_counter;
+
+  if (surface) {
+    cairo_surface_reference(surface);
+  }
+
+  cache_count++;
+}
+
+/* Update access time for cache entry */
+static void update_access_time(int index) {
+  if (index >= 0 && index < cache_count) {
+    icon_cache[index].access_time = ++lru_counter;
+  }
+}
+
 /* Find icon in a specific theme directory */
 static char *find_icon_in_theme(const char *theme, const char *icon_name,
                                 int size) {
@@ -159,7 +228,7 @@ static char *find_icon_in_theme(const char *theme, const char *icon_name,
     }
   }
 
-  /* 尝试 pixmaps */
+  /* try pixmaps */
   for (size_t e = 0; e < sizeof(extensions) / sizeof(extensions[0]); e++) {
     snprintf(path, sizeof(path), "/usr/share/pixmaps/%s%s", icon_name,
              extensions[e]);
@@ -375,6 +444,7 @@ void icons_init(const char *theme_name, const char *fallback) {
   }
 
   cache_count = 0;
+  lru_counter = 0;
   LOG("Initialized: theme=%s, fallback=%s", current_theme, fallback_theme_name);
 }
 
@@ -383,11 +453,13 @@ cairo_surface_t *load_app_icon(const char *class_name, int size) {
   if (!class_name || !class_name[0])
     return NULL;
 
+  /* Check cache first */
   for (int i = 0; i < cache_count; i++) {
     if (strcmp(icon_cache[i].class_name, class_name) == 0 &&
         icon_cache[i].size == size) {
       if (icon_cache[i].surface) {
         cairo_surface_reference(icon_cache[i].surface);
+        update_access_time(i);
         return icon_cache[i].surface;
       }
       return NULL;
@@ -398,13 +470,8 @@ cairo_surface_t *load_app_icon(const char *class_name, int size) {
   LOG("Class '%s' -> icon '%s'", class_name, icon_name ? icon_name : "(null)");
 
   if (!icon_name) {
-    if (cache_count < MAX_CACHE) {
-      strncpy(icon_cache[cache_count].class_name, class_name, 127);
-      icon_cache[cache_count].class_name[127] = '\0';
-      icon_cache[cache_count].size = size;
-      icon_cache[cache_count].surface = NULL;
-      cache_count++;
-    }
+    /* Cache the fact that this icon doesn't exist */
+    add_to_cache(class_name, size, NULL);
     return NULL;
   }
 
@@ -451,18 +518,8 @@ cairo_surface_t *load_app_icon(const char *class_name, int size) {
     }
   }
 
-  if (cache_count < MAX_CACHE) {
-    strncpy(icon_cache[cache_count].class_name, class_name, 127);
-    icon_cache[cache_count].class_name[127] = '\0';
-    icon_cache[cache_count].size = size;
-    icon_cache[cache_count].surface = surface;
-    if (surface) {
-      cairo_surface_reference(surface);
-    }
-    cache_count++;
-  } else {
-    LOG("Icon cache full!");
-  }
+  /* Add to cache (will evict LRU if needed) */
+  add_to_cache(class_name, size, surface);
 
   return surface;
 }
@@ -472,8 +529,10 @@ bool has_app_icon(const char *class_name) {
   if (!class_name)
     return false;
 
+  /* Check cache first */
   for (int i = 0; i < cache_count; i++) {
     if (strcmp(icon_cache[i].class_name, class_name) == 0) {
+      update_access_time(i);
       return icon_cache[i].surface != NULL;
     }
   }
@@ -495,5 +554,6 @@ void icons_cleanup(void) {
     }
   }
   cache_count = 0;
+  lru_counter = 0;
   LOG("Cache cleared");
 }
