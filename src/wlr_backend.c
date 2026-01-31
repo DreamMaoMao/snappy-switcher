@@ -176,7 +176,7 @@ toplevel_handle_state(void *data,
 static void
 toplevel_handle_done(void *data,
                      struct zwlr_foreign_toplevel_handle_v1 *toplevel) {
-  WindowNode *window = (WindowNode *)data;
+  (void)data;
   (void)toplevel;
 
   backend_state.needs_refresh = 1;

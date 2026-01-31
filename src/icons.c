@@ -99,21 +99,22 @@ static void init_paths(void) {
 /* Find icon in a specific theme directory */
 static char *find_icon_in_theme(const char *theme, const char *icon_name,
                                 int size) {
-  static char path[MAX_PATH];
   (void)size; /* Size hint not used currently */
+
+  static char path[MAX_PATH];
+  const char *extensions[] = {".svg", ".png", ".xpm"};
 
   const char *sizes[] = {"scalable", "512x512", "256x256", "128x128", "64x64",
                          "48x48",    "32x32",   "24x24",   "22x22",   "16x16"};
   const char *categories[] = {"apps",   "applications", "mimetypes",
                               "places", "devices",      "actions",
                               "status", "categories"};
-  const char *extensions[] = {".svg", ".png", ".xpm"};
 
   for (int d = 0; icon_dirs[d]; d++) {
     if (!icon_dirs[d][0])
       continue;
 
-    /* Try theme/size/category/icon format */
+    /* mode 1: theme/size/category/icon.ext */
     for (size_t s = 0; s < sizeof(sizes) / sizeof(sizes[0]); s++) {
       for (size_t c = 0; c < sizeof(categories) / sizeof(categories[0]); c++) {
         for (size_t e = 0; e < sizeof(extensions) / sizeof(extensions[0]);
@@ -126,7 +127,7 @@ static char *find_icon_in_theme(const char *theme, const char *icon_name,
       }
     }
 
-    /* Try theme/category/size/icon format (alternate layout) */
+    /* mode 2: theme/category/size/icon.ext */
     for (size_t c = 0; c < sizeof(categories) / sizeof(categories[0]); c++) {
       for (size_t s = 0; s < sizeof(sizes) / sizeof(sizes[0]); s++) {
         for (size_t e = 0; e < sizeof(extensions) / sizeof(extensions[0]);
@@ -138,9 +139,27 @@ static char *find_icon_in_theme(const char *theme, const char *icon_name,
         }
       }
     }
+
+    /* mode 3:  theme/category/icon.ext */
+    for (size_t c = 0; c < sizeof(categories) / sizeof(categories[0]); c++) {
+      for (size_t e = 0; e < sizeof(extensions) / sizeof(extensions[0]); e++) {
+        snprintf(path, sizeof(path), "%s/%s/%s/%s%s", icon_dirs[d], theme,
+                 categories[c], icon_name, extensions[e]);
+        if (file_exists(path))
+          return path;
+      }
+    }
+
+    /* mode 4: theme/apps/icon.ext */
+    for (size_t e = 0; e < sizeof(extensions) / sizeof(extensions[0]); e++) {
+      snprintf(path, sizeof(path), "%s/%s/apps/%s%s", icon_dirs[d], theme,
+               icon_name, extensions[e]);
+      if (file_exists(path))
+        return path;
+    }
   }
 
-  /* Try pixmaps as last resort */
+  /* 尝试 pixmaps */
   for (size_t e = 0; e < sizeof(extensions) / sizeof(extensions[0]); e++) {
     snprintf(path, sizeof(path), "/usr/share/pixmaps/%s%s", icon_name,
              extensions[e]);
