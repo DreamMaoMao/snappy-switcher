@@ -1,10 +1,10 @@
 # Maintainer: DreamMaoMao <maoopzopaasnmakslpo@gmail.com>
-pkgname=wswitch
+pkgname=wswitch-git
 pkgver=1.0.0
 pkgrel=1
-pkgdesc="A fast, Alt+Tab window switcher for wayland compositors with MRU sorting and context grouping"
+pkgdesc="A fast, Alt+Tab window switcher for wayland compositors"
 arch=('x86_64')
-url="https://github.com/OpalAayan/wswitch"
+url="https://github.com/DreamMaoMao/wswitch"
 license=('GPL3')
 depends=(
   'wayland'
@@ -24,20 +24,20 @@ makedepends=(
 optdepends=(
   'tela-icon-theme: Recommended icon theme'
 )
-provides=("$pkgname")
-conflicts=("$pkgname-git")
+provides=("wswitch")
+conflicts=("wswitch")
 # Use this for release versions. For now, we SKIP the check.
-source=("$url/archive/v$pkgver.tar.gz")
-sha256sums=('a3e9d527f1598c0ad59b22a9a7f52bc4f8c0ed690a3a22d0fc75d5afc6df24f1')
+source=("$pkgname::git+https://github.com/DreamMaoMao/wswitch.git")
+md5sums=('SKIP')
 
 build() {
-  cd "$pkgname-$pkgver"
+  cd "$pkgname"
   # Ensure we use standard paths
   make PREFIX=/usr
 }
 
 package() {
-  cd "$pkgname-$pkgver"
+  cd "$pkgname"
 
   # 1. Binaries
   install -Dm755 wswitch "$pkgdir/usr/bin/wswitch"
@@ -52,8 +52,6 @@ package() {
 
   # 4. Documentation
   install -Dm644 README.md "$pkgdir/usr/share/doc/$pkgname/README.md"
-  install -Dm644 docs/ARCHITECTURE.md "$pkgdir/usr/share/doc/$pkgname/ARCHITECTURE.md"
-  install -Dm644 docs/CONFIGURATION.md "$pkgdir/usr/share/doc/$pkgname/CONFIGURATION.md"
   install -Dm644 config.ini.example "$pkgdir/usr/share/doc/$pkgname/config.ini.example"
 
   # 5. Systemd Service (Optional, but good to include if available)
