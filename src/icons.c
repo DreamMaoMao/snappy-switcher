@@ -364,25 +364,24 @@ cairo_surface_t *load_app_icon(const char *class_name, int size) {
   if (!class_name || !class_name[0])
     return NULL;
 
-  /* Check cache first */
   for (int i = 0; i < cache_count; i++) {
     if (strcmp(icon_cache[i].class_name, class_name) == 0 &&
         icon_cache[i].size == size) {
       if (icon_cache[i].surface) {
         cairo_surface_reference(icon_cache[i].surface);
+        return icon_cache[i].surface;
       }
-      return icon_cache[i].surface;
+      return NULL;
     }
   }
 
-  /* Find icon name from desktop file */
   char *icon_name = find_desktop_icon(class_name);
   LOG("Class '%s' -> icon '%s'", class_name, icon_name ? icon_name : "(null)");
 
   if (!icon_name) {
-    /* Cache NULL result */
     if (cache_count < MAX_CACHE) {
       strncpy(icon_cache[cache_count].class_name, class_name, 127);
+      icon_cache[cache_count].class_name[127] = '\0';
       icon_cache[cache_count].size = size;
       icon_cache[cache_count].surface = NULL;
       cache_count++;
@@ -390,45 +389,60 @@ cairo_surface_t *load_app_icon(const char *class_name, int size) {
     return NULL;
   }
 
-  /* Find icon file in themes */
-  char *icon_path = find_icon_in_theme(current_theme, icon_name, size);
-  if (!icon_path) {
-    icon_path = find_icon_in_theme(fallback_theme_name, icon_name, size);
-  }
-  if (!icon_path) {
-    icon_path = find_icon_in_theme("hicolor", icon_name, size);
-  }
-  if (!icon_path) {
-    icon_path = find_icon_in_theme("Adwaita", icon_name, size);
-  }
-
   cairo_surface_t *surface = NULL;
 
-  if (icon_path) {
-    LOG("Loading icon: %s", icon_path);
-
-    const char *ext = strrchr(icon_path, '.');
+  if (icon_name[0] == '/') {
+    LOG("Absolute path icon: %s", icon_name);
+    const char *ext = strrchr(icon_name, '.');
     if (ext) {
       if (strcasecmp(ext, ".png") == 0) {
-        surface = load_png_icon(icon_path, size);
+        surface = load_png_icon(icon_name, size);
       }
 #ifdef HAVE_RSVG
       else if (strcasecmp(ext, ".svg") == 0) {
-        surface = load_svg_icon(icon_path, size);
+        surface = load_svg_icon(icon_name, size);
       }
 #endif
     }
+  } else {
+    char *icon_path = find_icon_in_theme(current_theme, icon_name, size);
+    if (!icon_path) {
+      icon_path = find_icon_in_theme(fallback_theme_name, icon_name, size);
+    }
+    if (!icon_path) {
+      icon_path = find_icon_in_theme("hicolor", icon_name, size);
+    }
+    if (!icon_path) {
+      icon_path = find_icon_in_theme("Adwaita", icon_name, size);
+    }
+
+    if (icon_path) {
+      LOG("Loading icon: %s", icon_path);
+      const char *ext = strrchr(icon_path, '.');
+      if (ext) {
+        if (strcasecmp(ext, ".png") == 0) {
+          surface = load_png_icon(icon_path, size);
+        }
+#ifdef HAVE_RSVG
+        else if (strcasecmp(ext, ".svg") == 0) {
+          surface = load_svg_icon(icon_path, size);
+        }
+#endif
+      }
+    }
   }
 
-  /* Cache result */
   if (cache_count < MAX_CACHE) {
     strncpy(icon_cache[cache_count].class_name, class_name, 127);
+    icon_cache[cache_count].class_name[127] = '\0';
     icon_cache[cache_count].size = size;
     icon_cache[cache_count].surface = surface;
     if (surface) {
       cairo_surface_reference(surface);
     }
     cache_count++;
+  } else {
+    LOG("Icon cache full!");
   }
 
   return surface;
