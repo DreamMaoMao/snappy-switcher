@@ -32,7 +32,6 @@ echo ""
 if [ -f "$HOME/.local/bin/snappy-switcher" ]; then
     echo "⚠️  Removing old binary from ~/.local/bin/ (conflicts with system install)"
     rm -f "$HOME/.local/bin/snappy-switcher"
-    rm -f "$HOME/.local/bin/snappy-wrapper"
 fi
 
 # Create directories

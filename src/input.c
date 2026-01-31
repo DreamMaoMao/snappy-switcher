@@ -2,7 +2,7 @@
 #define _POSIX_C_SOURCE 200809L
 
 #include "input.h"
-#include "hyprland.h"
+#include "backend.h"
 #include "render.h"
 #include <fcntl.h>
 #include <stdio.h>
@@ -25,6 +25,8 @@ static bool ignore_first_release = true;
 modifier_release_callback_t on_modifier_release = NULL;
 modifier_release_callback_t on_escape = NULL;
 static AppState *app_state = NULL;
+
+extern Backend *backend;
 
 void input_reset_modifier_states(void) {
   alt_pressed = true;
@@ -135,7 +137,8 @@ static void keyboard_key(void *data, struct wl_keyboard *keyboard,
   case XKB_KEY_KP_Enter:
     if (app_state->count > 0 && app_state->selected_index >= 0 &&
         app_state->selected_index < app_state->count) {
-      switch_to_window(app_state->windows[app_state->selected_index].address);
+      backend->activate_window(
+          app_state->windows[app_state->selected_index].address);
       if (on_modifier_release)
         on_modifier_release();
     }

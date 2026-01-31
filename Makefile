@@ -21,7 +21,7 @@ DOCDIR = $(PREFIX)/share/doc/snappy-switcher
 SYSCONFDIR = /etc/xdg/snappy-switcher
 
 # Source files
-SRC = src/main.c src/hyprland.c src/render.c src/input.c src/config.c src/icons.c src/socket.c src/backend.c src/wlr_backend.c
+SRC = src/main.c src/data.c src/render.c src/input.c src/config.c src/icons.c src/socket.c src/backend.c src/wlr_backend.c
 OBJ = $(SRC:.c=.o) src/xdg-shell-protocol.o src/wlr-layer-shell-unstable-v1-protocol.o src/wlr-foreign-toplevel-management-unstable-v1-protocol.o
 TARGET = snappy-switcher
 
@@ -79,7 +79,6 @@ install: $(TARGET)
 	@echo "Installing binaries to $(BINDIR)..."
 	install -d $(BINDIR)
 	install -m 755 $(TARGET) $(BINDIR)/$(TARGET)
-	install -m 755 scripts/snappy-wrapper.sh $(BINDIR)/snappy-wrapper
 	@echo ""
 	@echo "Installing themes to $(DATADIR)/themes/..."
 	install -d $(DATADIR)/themes
@@ -106,10 +105,9 @@ install: $(TARGET)
 	@echo "  1. Setup your config:"
 	@echo "     snappy-install-config"
 	@echo ""
-	@echo "  2. Add to ~/.config/hypr/hyprland.conf:"
-	@echo "     exec-once = snappy-wrapper"
-	@echo "     bind = ALT, Tab, exec, snappy-switcher next"
-	@echo "     bind = ALT SHIFT, Tab, exec, snappy-switcher prev"
+	@echo "  2. Add to your compositor config(sway example):"
+	@echo "     exec snappy-switcher --daemon"
+	@echo "     bindsym Alt+tab exec snappy-switcher next"
 	@echo ""
 	@echo "  3. (Optional) Choose a theme in ~/.config/snappy-switcher/config.ini"
 	@echo "     Available: snappy-slate, catppuccin-mocha, nord, dracula, etc."
@@ -119,7 +117,6 @@ install-user: $(TARGET)
 	@echo "Installing to user directory (~/.local)..."
 	install -d $(HOME)/.local/bin
 	install -m 755 $(TARGET) $(HOME)/.local/bin/$(TARGET)
-	install -m 755 scripts/snappy-wrapper.sh $(HOME)/.local/bin/snappy-wrapper
 	install -d $(HOME)/.config/snappy-switcher/themes
 	install -m 644 themes/*.ini $(HOME)/.config/snappy-switcher/themes/
 	@if [ ! -f $(HOME)/.config/snappy-switcher/config.ini ]; then \
@@ -130,7 +127,6 @@ install-user: $(TARGET)
 uninstall:
 	@echo "Removing Snappy Switcher..."
 	rm -f $(BINDIR)/$(TARGET)
-	rm -f $(BINDIR)/snappy-wrapper
 	rm -f $(BINDIR)/snappy-install-config
 	rm -rf $(DATADIR)
 	rm -rf $(DOCDIR)

@@ -7,7 +7,7 @@
 #include <wayland-client.h>
 
 /* Backend types */
-typedef enum { BACKEND_HYPRLAND, BACKEND_WLR, BACKEND_UNKNOWN } BackendType;
+typedef enum { BACKEND_WLR, BACKEND_UNKNOWN } BackendType;
 
 /* Backend function pointers */
 typedef struct {

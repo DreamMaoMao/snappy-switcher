@@ -2,11 +2,10 @@
 
 # ⚡ Snappy Switcher
 
-### A blazing-fast, animated Alt+Tab window switcher for Hyprland
+### A blazing-fast, animated Alt+Tab window switcher for wayland compositors
 
 [![License](https://img.shields.io/badge/License-GPL3-blue?style=for-the-badge&logo=gnu)](LICENSE)
 [![Language](https://img.shields.io/badge/Language-C-orange?style=for-the-badge&logo=c)](https://en.cppreference.com/w/c)
-[![Platform](https://img.shields.io/badge/Platform-Hyprland-58E1FF?style=for-the-badge&logo=wayland)](https://hyprland.org/)
 [![Version](https://img.shields.io/badge/Version-1.0-success?style=for-the-badge)]()
 [![AUR](https://img.shields.io/aur/version/snappy-switcher?color=blue&label=AUR&logo=arch-linux&style=for-the-badge)](https://aur.archlinux.org/packages/snappy-switcher)
 
@@ -36,63 +35,7 @@
 
 ---
 
-## 🔄 How It Works
 
-```mermaid
-flowchart LR
-    subgraph Input[" "]
-        A["⌨️ Alt+Tab"]
-    end
-
-    subgraph Daemon["🔧 Snappy Daemon"]
-        B["📡 Fetch Clients<br/>(Hyprland IPC)"]
-        C["📊 Sort by MRU<br/>(Most Recently Used)"]
-        D["🧩 Context Aggregation<br/>(Group Tiled Windows)"]
-    end
-
-    subgraph Output[" "]
-        E["🖼️ Cairo Render"]
-        F["👁️ Overlay Display"]
-    end
-
-    A --> B --> C --> D --> E --> F
-
-    style A fill:#89b4fa,stroke:#1e1e2e,color:#1e1e2e
-    style B fill:#a6e3a1,stroke:#1e1e2e,color:#1e1e2e
-    style C fill:#fab387,stroke:#1e1e2e,color:#1e1e2e
-    style D fill:#f9e2af,stroke:#1e1e2e,color:#1e1e2e
-    style E fill:#cba6f7,stroke:#1e1e2e,color:#1e1e2e
-    style F fill:#f38ba8,stroke:#1e1e2e,color:#1e1e2e
-```
-
-### 🔍 Context Mode in Action
-
-```mermaid
-graph TB
-    subgraph Before["📋 Raw Window List"]
-        W1["kitty<br/>workspace 1"]
-        W2["kitty<br/>workspace 1"]
-        W3["firefox<br/>workspace 2"]
-        W4["kitty<br/>workspace 1"]
-        W5["firefox<br/>floating"]
-    end
-
-    subgraph After["✨ After Context Aggregation"]
-        G1["🔲 kitty × 3<br/>workspace 1"]
-        G2["🔲 firefox<br/>workspace 2"]
-        G3["🔳 firefox<br/>floating"]
-    end
-
-    Before -->|"Group Tiled<br/>Preserve Floating"| After
-
-    style G1 fill:#313244,stroke:#89b4fa,color:#cdd6f4
-    style G2 fill:#313244,stroke:#89b4fa,color:#cdd6f4
-    style G3 fill:#45475a,stroke:#f38ba8,color:#cdd6f4
-```
-
-> 💡 **Floating windows** are always shown individually—they're special!
-
----
 
 ## 📦 Installation
 
@@ -175,9 +118,9 @@ snappy-install-config
 
 This copies themes and creates `~/.config/snappy-switcher/config.ini`.
 
-### 2️⃣ Add to Hyprland Config
+### 2️⃣ Add to Sway Config
 
-Add these lines to `~/.config/hypr/hyprland.conf`:
+Add these lines to `~/.config/sway/config`:
 
 ```bash
 # Start the daemon on login
@@ -311,67 +254,8 @@ title_size = 10
 
 ---
 
-## 🏗️ Architecture
 
-```mermaid
-flowchart TB
-    subgraph Client["📱 Client Commands"]
-        CMD["snappy-switcher next/prev"]
-    end
 
-    subgraph Daemon["🔧 Daemon Process"]
-        SOCK["🔌 Unix Socket<br/>/tmp/snappy-switcher.sock"]
-        
-        subgraph Core["Core Logic"]
-            HYP["hyprland.c<br/>IPC + Window Fetch"]
-            CFG["config.c<br/>INI Parsing"]
-            ICO["icons.c<br/>Theme Resolution"]
-        end
-        
-        subgraph Render["Rendering"]
-            RND["render.c<br/>Cairo + Pango"]
-            INP["input.c<br/>Keyboard Events"]
-        end
-        
-        WL["🌊 Wayland<br/>Layer Shell"]
-    end
-
-    subgraph External["🌐 External"]
-        HYP_IPC["Hyprland IPC"]
-        DISP["Display Server"]
-    end
-
-    CMD -->|"send command"| SOCK
-    SOCK --> HYP
-    HYP <-->|"j/clients"| HYP_IPC
-    CFG --> RND
-    ICO --> RND
-    HYP --> RND
-    RND --> WL
-    INP --> WL
-    WL <--> DISP
-
-    style SOCK fill:#89b4fa,stroke:#1e1e2e,color:#1e1e2e
-    style HYP fill:#a6e3a1,stroke:#1e1e2e,color:#1e1e2e
-    style RND fill:#cba6f7,stroke:#1e1e2e,color:#1e1e2e
-    style WL fill:#f9e2af,stroke:#1e1e2e,color:#1e1e2e
-```
-
-### 📁 Key Components
-
-| File | Purpose |
-|------|---------|
-| `main.c` | Daemon, event loop, socket server |
-| `hyprland.c` | IPC client, window parsing, context aggregation |
-| `render.c` | Cairo/Pango rendering, card drawing |
-| `config.c` | INI parser, theme loading |
-| `icons.c` | Icon theme resolution (XDG compliant) |
-| `input.c` | Keyboard handling via libxkbcommon |
-| `socket.c` | Unix socket IPC |
-
-📘 **[Full Architecture Documentation →](docs/ARCHITECTURE.md)**
-
----
 
 ## 🧪 Available Commands
 
@@ -418,7 +302,6 @@ This project was built with ❤️ for the Linux customization community.
 | Project | Contribution |
 |---------|--------------|
 | **[hyprshell](https://github.com/H3rmt/hyprshell)** | Massive inspiration for client parsing and layer-shell handling |
-| **[Hyprland](https://hyprland.org/)** | The incredible compositor that makes this possible |
 | **[Catppuccin](https://github.com/catppuccin)** | Beautiful color palettes used in themes |
 
 ---

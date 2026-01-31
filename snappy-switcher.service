@@ -1,5 +1,5 @@
 [Unit]
-Description=Snappy Switcher - Alt+Tab Window Switcher for Hyprland
+Description=Snappy Switcher - Alt+Tab Window Switcher for wayland compositors
 Documentation=https://github.com/user/snappy-switcher
 After=graphical-session.target
 PartOf=graphical-session.target

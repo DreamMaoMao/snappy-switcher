@@ -52,7 +52,7 @@ static AppState app_state;
 static Config *config = NULL;
 static int socket_fd = -1;
 
-static Backend *backend = NULL;
+Backend *backend = NULL;
 
 /* Startup Race Condition Fix */
 // static bool first_show_done = false;

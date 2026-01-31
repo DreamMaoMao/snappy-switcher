@@ -1,8 +1,8 @@
-# Maintainer: Opal Aayan <YougurtMyFace@proton.me>
+# Maintainer: DreamMaoMao <maoopzopaasnmakslpo@gmail.com>
 pkgname=snappy-switcher
 pkgver=1.0.0
 pkgrel=1
-pkgdesc="A fast, animated Alt+Tab window switcher for Hyprland with MRU sorting and context grouping"
+pkgdesc="A fast, Alt+Tab window switcher for wayland compositors with MRU sorting and context grouping"
 arch=('x86_64')
 url="https://github.com/OpalAayan/snappy-switcher"
 license=('GPL3')
@@ -22,7 +22,6 @@ makedepends=(
   'make'
 )
 optdepends=(
-  'hyprland: Required window manager'
   'tela-icon-theme: Recommended icon theme'
 )
 provides=("$pkgname")
@@ -42,7 +41,6 @@ package() {
 
   # 1. Binaries
   install -Dm755 snappy-switcher "$pkgdir/usr/bin/snappy-switcher"
-  install -Dm755 scripts/snappy-wrapper.sh "$pkgdir/usr/bin/snappy-wrapper"
   install -Dm755 scripts/install-config.sh "$pkgdir/usr/bin/snappy-install-config"
 
   # 2. Themes
