@@ -19,16 +19,18 @@ static struct xkb_keymap *xkb_keymap = NULL;
 static struct xkb_state *xkb_st = NULL;
 
 static bool alt_pressed = false;
+static bool super_pressed = false;
 static bool ignore_first_release = true;
 
-alt_release_callback_t on_alt_release = NULL;
-alt_release_callback_t on_escape = NULL;
+modifier_release_callback_t on_modifier_release = NULL;
+modifier_release_callback_t on_escape = NULL;
 static AppState *app_state = NULL;
 
-void input_reset_alt_state(void) {
+void input_reset_modifier_states(void) {
   alt_pressed = true;
+  super_pressed = true;
   ignore_first_release = true;
-  LOG("Alt state reset");
+  LOG("Modifier states reset");
 }
 
 static void keyboard_keymap(void *data, struct wl_keyboard *keyboard,
@@ -123,9 +125,9 @@ static void keyboard_key(void *data, struct wl_keyboard *keyboard,
   case XKB_KEY_Escape:
     if (on_escape)
       on_escape();
-    else if (on_alt_release) {
+    else if (on_modifier_release) {
       app_state->selected_index = 0;
-      on_alt_release();
+      on_modifier_release();
     }
     break;
 
@@ -134,8 +136,8 @@ static void keyboard_key(void *data, struct wl_keyboard *keyboard,
     if (app_state->count > 0 && app_state->selected_index >= 0 &&
         app_state->selected_index < app_state->count) {
       switch_to_window(app_state->windows[app_state->selected_index].address);
-      if (on_alt_release)
-        on_alt_release();
+      if (on_modifier_release)
+        on_modifier_release();
     }
     break;
   }
@@ -155,18 +157,24 @@ static void keyboard_modifiers(void *data, struct wl_keyboard *keyboard,
 
   bool alt_now = xkb_state_mod_name_is_active(xkb_st, XKB_MOD_NAME_ALT,
                                               XKB_STATE_MODS_EFFECTIVE);
+  bool super_now = xkb_state_mod_name_is_active(xkb_st, XKB_MOD_NAME_LOGO,
+                                                XKB_STATE_MODS_EFFECTIVE);
 
   if (ignore_first_release) {
     ignore_first_release = false;
     alt_pressed = alt_now;
+    super_pressed = super_now;
     return;
   }
 
-  if (alt_pressed && !alt_now) {
-    if (on_alt_release)
-      on_alt_release();
+  // Trigger on release of either Alt or Super
+  if ((alt_pressed && !alt_now) || (super_pressed && !super_now)) {
+    if (on_modifier_release)
+      on_modifier_release();
   }
+
   alt_pressed = alt_now;
+  super_pressed = super_now;
 }
 
 static void keyboard_repeat_info(void *data, struct wl_keyboard *keyboard,

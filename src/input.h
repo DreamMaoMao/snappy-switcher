@@ -6,15 +6,15 @@
 #include <stdbool.h>
 #include <wayland-client.h>
 
-/* Callback for Alt release event (set by main.c) */
-typedef void (*alt_release_callback_t)(void);
-extern alt_release_callback_t on_alt_release;
+/* Callback for modifier release event (set by main.c) */
+typedef void (*modifier_release_callback_t)(void);
+extern modifier_release_callback_t on_modifier_release;
 
 /* Callback for Escape key - hide without switching (set by main.c) */
-extern alt_release_callback_t on_escape;
+extern modifier_release_callback_t on_escape;
 
-/* Reset Alt state (call when switcher shows to avoid stale detection) */
-void input_reset_alt_state(void);
+/* Reset modifier states (call when switcher shows to avoid stale detection) */
+void input_reset_modifier_states(void);
 
 /* Get keyboard listener for Wayland seat */
 const struct wl_keyboard_listener *get_keyboard_listener(void);

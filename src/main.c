@@ -229,7 +229,7 @@ static void show_switcher(void) {
     return;
   }
 
-  input_reset_alt_state();
+  input_reset_modifier_states();
 
   app_state_free(&app_state);
   app_state_init(&app_state);
@@ -403,7 +403,7 @@ static int run_daemon(void) {
   app_state_init(&app_state);
 
   /* Callbacks */
-  on_alt_release = select_and_hide;
+  on_modifier_release = select_and_hide;
   on_escape = hide_switcher; /* hide without switch */
 
   /* 3. Wayland Connection */
